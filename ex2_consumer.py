@@ -2,14 +2,16 @@ from kafka import KafkaConsumer
 import json
 import sys
 
+import argparse
+
 # Setup
 BOOTSTRAP_SERVERS = ['localhost:9092']
-TOPIC_NAME = 'weather_stream'
+DEFAULT_TOPIC = 'weather_stream'
 
-def run_consumer():
+def run_consumer(topic_name):
     try:
         consumer = KafkaConsumer(
-            TOPIC_NAME,
+            topic_name,
             bootstrap_servers=BOOTSTRAP_SERVERS,
             auto_offset_reset='earliest',
             enable_auto_commit=True,
@@ -17,7 +19,7 @@ def run_consumer():
             value_deserializer=lambda x: json.loads(x.decode('utf-8'))
         )
         
-        print(f"Listening for messages on topic '{TOPIC_NAME}'...")
+        print(f"Listening for messages on topic '{topic_name}'...")
         
         for message in consumer:
             print(f"Received message: {message.value}")
@@ -32,4 +34,8 @@ def run_consumer():
             consumer.close()
 
 if __name__ == "__main__":
-    run_consumer()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('topic', nargs='?', default=DEFAULT_TOPIC, help='Kafka topic to consume from')
+    args = parser.parse_args()
+    
+    run_consumer(args.topic)
